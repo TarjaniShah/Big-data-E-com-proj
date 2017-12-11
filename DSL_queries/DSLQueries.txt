@@ -1,0 +1,181 @@
+Query1: This will return all the documents indexed in elastic search
+
+http://localhost:9200/assignments/_search
+
+{
+    "query": {
+        "match_all" : {}
+    }
+}
+
+Query2: This query will search the term 'designed' in all the attributes across all the documents.
+http://localhost:9200/assignments/_search
+
+{
+    "query": {
+        "query_string" : {
+            "query" : "designed"
+        }
+    }
+}
+
+Query3: This query will return the exact match that is mentioned
+http://localhost:9200/assignments/_search
+
+{
+    "query": {
+        "match_phrase" : {
+            "type_names.tag_names" : "computer science"
+        }
+    }
+}
+
+OR
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "type_names.tag_names": "Computer Science" } }
+      ],
+      "must_not": [
+        { "match": { "type_names.tag_names": "food" } }
+		{ "match": { "type_names.tag_names": "env" } }
+      ]
+    }
+  }
+}
+
+Query4 : This allows fuzziness or exception as per the fuzziness value that we mention
+{
+    "query": {
+        "fuzzy" : {
+            "type_names.tag_names" : {
+                "value" :"sciece",
+                "fuzziness" :1
+            }
+        }
+    }
+}
+
+Query5 : This query can used in any scenario that would need to match a particular keyword and ignore certain other words
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "type_names.tag_names": "Computer Science" } }
+      ],
+      "must_not": [
+        {	"match": { "summary": "science" }},
+        {	"match": { "name": "science" }}
+      ]
+    }
+  }
+}
+
+Query6 : Boosting preference, in this case tag_name is given higher boosting of 5 as compared to name or summary
+{
+  "query": {
+    "multi_match" : {
+      "query" : "strategy" ,
+      "fields" : [ "tag_name^5", "name^2", "summary" ] 
+    }
+  }
+}
+
+Query7: Location based search
+Location query:
+{
+    "query": {
+        "filtered" : {
+            "query" : {
+                "match_all" : {}
+            },
+            "filter" : {
+                "geo_distance" : {
+                    "distance" : "20km",
+                    "Location" : {
+                        "lat" : 37.776,
+                        "lon" : -122.41
+                    }
+                }
+            }
+        }
+    }
+}    
+
+
+Query8: Scenario where we want to see courses related business we can give more boost to the college having the word BUSINESS then anyother school or university as other unversities might have other courses than Business
+
+{
+    "query": {
+        "wildcard" : 
+        	{ "name" : 
+        		{ "value" : "*business*" ,
+        		  "boost" : 2.0 
+        		  }
+        	}
+        	
+    }
+}
+
+Query9: To find portals which are featured or not
+
+{
+    "query": {
+        "match": {
+            "featured": false
+        }
+    }
+}
+
+Query10 : To search portals based on locations
+{
+    "query": {
+        "match": {
+            "city":{ 
+            "query" : "bston",
+             "fuzziness" : 2
+             }
+             
+        }
+    }
+}'
+
+Query11: Used range query to boost the results if the distance is between
+
+{
+    "query": {
+        "range" : {
+            "distance" : {
+                "gte" : 0,
+                "lte" : 5,
+                "boost" : 2.0
+            }
+        }
+    }
+}
+
+Query12: To find the assignments with the range of specific start and end date
+
+{
+    "query": {
+        "range" : {
+            "start_date" : {
+                "gte" : "2017-01-30T05:00:00.000",
+                "lte" : "2017-10-30T05:00:00.000Z"
+            }
+        }
+    }
+}
+
+Query13: To get the list of all assignments those are not yet full
+
+{
+    "query": {
+        "match": {
+            "full": false
+        }
+    }
+}
